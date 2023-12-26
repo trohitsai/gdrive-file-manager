@@ -71,7 +71,8 @@ Make requests to the API endpoints using your preferred HTTP client or tool.
 Example: List files on Google Drive
 
 ```bash
-curl http://localhost:3001/v1/files
+curl --location 'http://localhost:3001/v1/files' \
+--header 'Authorization: Bearer XXX'
 ```
 
 License
