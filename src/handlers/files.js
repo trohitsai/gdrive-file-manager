@@ -3,6 +3,7 @@ const logger = require('../utils/logger');
 const redis = require('../services/redis');
 const { google } = require('googleapis');
 const { clientId, clientSecret, redirectUri, rootPath } = require('../../config')
+const {STATUS_CODES} = require('../constants')
 
 async function getAuthUrl() {
     const scopes = ['https://www.googleapis.com/auth/drive'];
@@ -16,7 +17,7 @@ async function getAuthUrl() {
 
     return {
         data: authUrl,
-        statusCode: 200
+        statusCode: STATUS_CODES.SUCCESS
     }
 }
 
@@ -30,7 +31,7 @@ async function getFiles(accessToken) {
 
         return {
             data: response.data.files,
-            statusCode: 200
+            statusCode: STATUS_CODES.SUCCESS
         }
       } catch (err) {
         logger.error(err);
@@ -38,8 +39,7 @@ async function getFiles(accessToken) {
             errors: {
                 error_code: err.errors[0] ? `${err.errors[0].locationType}_${err.errors[0].reason}` : "files_error",
                 message: err.message
-            },
-            statusCode: 400
+            }
         }
     }
 }
@@ -70,7 +70,7 @@ async function getFilePermissions(accessToken, fileId) {
         }
         return {
             data: {permissions: permissions_response},
-            statusCode: 200
+            statusCode: STATUS_CODES.SUCCESS
         }
       } catch (err) {
         logger.error(err);
@@ -113,7 +113,7 @@ async function downloadFile(accessToken, fileId) {
                 fileStream.on("finish", function() {
                     resolve({
                         data: filepath,
-                        statusCode: 200
+                        statusCode: STATUS_CODES.SUCCESS
                     });
                 });
                 
@@ -147,4 +147,6 @@ async function getFileDetails(serviceClient, fileId, fields='*') {
     return files.data
 }
 
-module.exports = {getAuthUrl, getFiles, getFilePermissions, downloadFile}
+module.exports = {
+    getAuthUrl, getFiles, getFilePermissions, downloadFile
+}

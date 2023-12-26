@@ -1,6 +1,7 @@
 const logger = require('../utils/logger');
 const { google } = require('googleapis');
 const { clientId, clientSecret, redirectUri, rootPath } = require('../../config')
+const {STATUS_CODES} = require('../constants')
 
 async function getAuthUrl() {
     const scopes = ['https://www.googleapis.com/auth/drive'];
@@ -15,7 +16,7 @@ async function getAuthUrl() {
     
     return {
         data: {url:authUrl},
-        statusCode: 200
+        statusCode: STATUS_CODES.SUCCESS
     }
 }
 
@@ -41,7 +42,7 @@ async function handleCallback(code) {
         logger.info('Authentication successful!');
         return {
             data: { refresh_token: refreshToken, access_token:accessToken },
-            statusCode: 200
+            statusCode: STATUS_CODES.SUCCESS
         }
     } catch (error) {
         return {
@@ -49,4 +50,7 @@ async function handleCallback(code) {
         }
     }
 }
-module.exports = {getAuthUrl, handleCallback}
+module.exports = {
+    getAuthUrl, 
+    handleCallback
+}

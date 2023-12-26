@@ -11,5 +11,13 @@ const rootPath = process.env.ROOT_DOWNLOAD_PATH;
 const private_auth_token = process.env.PRIVATE_AUTH_TOKEN;
 
 module.exports = {
-    port, redisConf, env, gcp_credentials_file, clientId, clientSecret, redirectUri, rootPath, private_auth_token
+    port, 
+    redisConf, 
+    env, 
+    gcp_credentials_file, 
+    clientId, 
+    clientSecret, 
+    redirectUri, 
+    rootPath, 
+    private_auth_token
 };
