@@ -8,8 +8,8 @@ const clientId = process.env.CLIENT_ID;
 const clientSecret = process.env.CLIENT_SECRET;
 const redirectUri = process.env.REDIRECT_URI;
 const rootPath = process.env.ROOT_DOWNLOAD_PATH;
-
+const private_auth_token = process.env.PRIVATE_AUTH_TOKEN;
 
 module.exports = {
-    port, redisConf, env, gcp_credentials_file, clientId, clientSecret, redirectUri, rootPath
+    port, redisConf, env, gcp_credentials_file, clientId, clientSecret, redirectUri, rootPath, private_auth_token
 };

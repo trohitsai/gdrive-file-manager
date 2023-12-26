@@ -14,16 +14,25 @@ async function getAuthUrl() {
     logger.info(authUrl)
     
     return {
-        data: authUrl,
+        data: {url:authUrl},
         statusCode: 200
     }
 }
 
 async function handleCallback(code) {
-    const authClient = new google.auth.OAuth2(clientId, clientSecret, redirectUri);
+
+    if (!code) {
+        return {
+            errors: {
+                error_code: 'required_param_missing',
+                message: 'missing requird parameter code'
+            }
+        }
+    }
 
     try {
-        // Exchange the authorization code for access and refresh tokens
+        const authClient = new google.auth.OAuth2(clientId, clientSecret, redirectUri);
+        // get access token & refresh tokens with authorization code
         const { tokens } = await authClient.getToken(code);
         const accessToken = tokens.access_token;
         const refreshToken = tokens.refresh_token;
@@ -35,10 +44,8 @@ async function handleCallback(code) {
             statusCode: 200
         }
     } catch (error) {
-        console.error('Error authenticating:', error);
         return {
-            errors: "",
-            statusCode: 400
+            errors: error
         }
     }
 }

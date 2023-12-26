@@ -13,8 +13,7 @@ async function getAuthUrl() {
         scope: scopes,
         include_granted_scopes: true
     });
-    logger.info(authUrl)
-    
+
     return {
         data: authUrl,
         statusCode: 200
@@ -34,9 +33,12 @@ async function getFiles(accessToken) {
             statusCode: 200
         }
       } catch (err) {
-        console.error('Error listing all files:', err);
+        logger.error(err);
         return {
-            errors: " ",
+            errors: {
+                error_code: err.errors[0] ? `${err.errors[0].locationType}_${err.errors[0].reason}` : "files_error",
+                message: err.message
+            },
             statusCode: 400
         }
     }
@@ -54,7 +56,7 @@ async function getFilePermissions(accessToken, fileId) {
             fileId: fileId
         });
 
-        logger.info(`listed permissions`)
+        logger.info(`Listed all permissions for file ${fileId}`)
 
         for (const permission of response.data.permissions) {
             if (permission.role!='owner'){
@@ -71,10 +73,13 @@ async function getFilePermissions(accessToken, fileId) {
             statusCode: 200
         }
       } catch (err) {
-        console.error('Error getting file permissions:', err);
+        logger.error(err);
+        // handling google drive errors
         return {
-            errors:"",
-            statusCode: 400
+            errors:{
+                error_code: err.errors[0] ? `${err.errors[0].locationType}_${err.errors[0].reason}` : 'permission_error',
+                message: err.errors[0] ? `${err.errors[0].message}` : 'error while getting file permissions'
+            }
         }
     }
 }
@@ -87,32 +92,47 @@ async function downloadFile(accessToken, fileId) {
         var drive = google.drive({version: "v3", auth: authClient,});
 
         return new Promise(async(resolve, reject) => {
-            const fileData = await getFileDetails(drive, fileId, "name");
-            const filepath=`${rootPath}/${fileData.name}`
-            
-            const fileStream = fs.createWriteStream(filepath)
-            const file = await drive.files.get({fileId: fileId, alt: 'media',}, {responseType: "stream"});
-    
-            file.data.on('end', () => console.log('onCompleted'))
-            file.data.pipe(fileStream);
-            file.data.on("error", (err) => {
+
+            try {
+                const fileData = await getFileDetails(drive, fileId, "name");
+                const filepath=`${rootPath}/${fileData.name}`
+                
+                const fileStream = fs.createWriteStream(filepath)
+                const file = await drive.files.get({fileId: fileId, alt: 'media',}, {responseType: "stream"});
+        
+                file.data.on('end', () => console.log('onCompleted'))
+                file.data.pipe(fileStream);
+                file.data.on("error", (err) => {
+                    reject({
+                        errors:{
+                            error_code: err.errors[0] ? `${err.errors[0].locationType}_${err.errors[0].reason}` : '',
+                            message: err.errors[0] ? `${err.errors[0].message}` : ''
+                        }
+                    });
+                });
+                fileStream.on("finish", function() {
+                    resolve({
+                        data: filepath,
+                        statusCode: 200
+                    });
+                });
+                
+            } catch (err) {
                 reject({
-                    errors:"error while file download",
-                    statusCode: 500
+                    errors:{
+                        error_code: err.errors[0] ? `${err.errors[0].locationType}_${err.errors[0].reason}` : '',
+                        message: err.errors[0] ? `${err.errors[0].message}` : ''
+                    }
                 });
-            });
-            fileStream.on("finish", function() {
-                resolve({
-                    data: filepath,
-                    statusCode: 200
-                });
-            });
+            }
         });
       } catch (err) {
         console.error('Error downloading file', err);
         return {
-            errors:"",
-            statusCode: 400
+            errors:{
+                error_code: err.errors[0] ? `${err.errors[0].locationType}_${err.errors[0].reason}` : '',
+                message: err.errors[0] ? `${err.errors[0].message}` : ''
+            }
         }
     }
 }
