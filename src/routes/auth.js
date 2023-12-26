@@ -3,6 +3,6 @@ const Router = Express.Router();
 
 const authController = require('../controllers/auth');
 
-Router.use('/v1', authController);
+Router.use('/', authController);
 
 module.exports = Router;

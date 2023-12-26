@@ -1,5 +1,6 @@
 const fs = require('fs');
 const logger = require('../utils/logger');
+const redis = require('../services/redis');
 const { google } = require('googleapis');
 const { clientId, clientSecret, redirectUri, rootPath } = require('../../config')
 
@@ -66,7 +67,7 @@ async function getFilePermissions(accessToken, fileId) {
             }
         }
         return {
-            data: permissions_response,
+            data: {permissions: permissions_response},
             statusCode: 200
         }
       } catch (err) {
@@ -78,33 +79,6 @@ async function getFilePermissions(accessToken, fileId) {
     }
 }
 
-// async function downloadFile1(accessToken, fileId) {
-//     try {
-//         const authClient = new google.auth.OAuth2(clientId, clientSecret, redirectUri);
-//         authClient.setCredentials({ access_token:accessToken });
-
-//         var drive = google.drive({version: "v3", auth: authClient,});
-
-//         const file = await drive.files.get({
-//             fileId: fileId,
-//             fields: 'webContentLink',
-//             }
-//         );
-
-//         logger.info(file.data.webContentLink)
-//         return {
-//             data: file.data.webContentLink,
-//             statusCode: 200
-//         }
-//       } catch (err) {
-//         console.error('Error downloading file', err);
-//         return {
-//             errors:"",
-//             statusCode: 400
-//         }
-//     }
-// }
-
 async function downloadFile(accessToken, fileId) {
     try {
         const authClient = new google.auth.OAuth2(clientId, clientSecret, redirectUri);
@@ -112,23 +86,28 @@ async function downloadFile(accessToken, fileId) {
 
         var drive = google.drive({version: "v3", auth: authClient,});
 
-        const fileStream = fs.createWriteStream(`${rootPath}/file.pdf`)
-
-        const file = await drive.files.get({
-            fileId: fileId,
-            alt: 'media',
-            }, 
-            {
-                responseType: "stream"
-            }
-        );
-
-        file.data.on('end', () => console.log('onCompleted'))
-        await file.data.pipe(fileStream);
-        return {
-            data: `${rootPath}/file.pdf`,
-            statusCode: 200
-        }
+        return new Promise(async(resolve, reject) => {
+            const fileData = await getFileDetails(drive, fileId, "name");
+            const filepath=`${rootPath}/${fileData.name}`
+            
+            const fileStream = fs.createWriteStream(filepath)
+            const file = await drive.files.get({fileId: fileId, alt: 'media',}, {responseType: "stream"});
+    
+            file.data.on('end', () => console.log('onCompleted'))
+            file.data.pipe(fileStream);
+            file.data.on("error", (err) => {
+                reject({
+                    errors:"error while file download",
+                    statusCode: 500
+                });
+            });
+            fileStream.on("finish", function() {
+                resolve({
+                    data: filepath,
+                    statusCode: 200
+                });
+            });
+        });
       } catch (err) {
         console.error('Error downloading file', err);
         return {
@@ -138,28 +117,14 @@ async function downloadFile(accessToken, fileId) {
     }
 }
 
-async function handleCallback(code) {
-    const authClient = new google.auth.OAuth2(clientId, clientSecret, redirectUri);
-
-    try {
-        // Exchange the authorization code for access and refresh tokens
-        const { tokens } = await authClient.getToken(code);
-        const accessToken = tokens.access_token;
-        const refreshToken = tokens.refresh_token;
-        authClient.setCredentials({ refresh_token: refreshToken, access_token:accessToken });
-
-        logger.info('Authentication successful!');
-        return {
-            data: { refresh_token: refreshToken, access_token:accessToken },
-            statusCode: 200
-        }
-    } catch (error) {
-        console.error('Error authenticating:', error);
-        return {
-            errors: "",
-            statusCode: 400
-        }
+async function getFileDetails(serviceClient, fileId, fields='*') {
+    let fileCache = await redis.getKey(fileId);
+    if(fileCache) {
+        return JSON.parse(fileCache)
     }
+    let files = await serviceClient.files.get({fileId: fileId, fields: fields},);
+    await redis.setKeyWithExpiry(fileId, 60*10, JSON.stringify(files.data));
+    return files.data
 }
 
-module.exports = {getAuthUrl, handleCallback, getFiles, getFilePermissions, downloadFile}
+module.exports = {getAuthUrl, getFiles, getFilePermissions, downloadFile}

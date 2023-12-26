@@ -7,7 +7,7 @@ const fileshandler = require('../handlers/files');
 
 Router.get('/files', async (req, res, next) => {
   try {
-    const { statusCode, errors, data } = await fileshandler.getFiles(req.query.access)
+    const { statusCode, errors, data } = await fileshandler.getFiles(req.body.access_token)
     
     if (errors){
       throw errors
@@ -21,7 +21,7 @@ Router.get('/files', async (req, res, next) => {
 
 Router.get('/files/permissions', async (req, res, next) => {
   try {
-    const { statusCode, errors, data } = await fileshandler.getFilePermissions(req.query.access, req.query.fileid)
+    const { statusCode, errors, data } = await fileshandler.getFilePermissions(req.body.access_token, req.query.fileid)
     
     if (errors){
       throw errors
@@ -35,7 +35,7 @@ Router.get('/files/permissions', async (req, res, next) => {
 
 Router.get('/files/download', async (req, res, next) => {
   try {
-    const { statusCode, errors, data } = await fileshandler.downloadFile(req.query.access, req.query.fileid)
+    const { statusCode, errors, data } = await fileshandler.downloadFile(req.body.access_token, req.query.fileid)
     
     if (errors){
       throw errors
@@ -48,15 +48,12 @@ Router.get('/files/download', async (req, res, next) => {
   }
 });
 
-Router.get('/auth/google/callback', async (req, res, next) => {
+Router.post('/events/hooks', async (req, res, next) => {
   try {
-    const { statusCode, errors, data } = await fileshandler.handleCallback(req.query.code)
-    
-    if (errors){
-      throw errors
-    }
+    console.log(req.headers)
+    console.log(req.body)
+    console.log("EVENT") 
 
-    res.status(statusCode).json(data);
   } catch (error) {
     next(error);
   }

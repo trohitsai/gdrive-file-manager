@@ -1,3 +1,4 @@
 const Request = require('./request');
+const Routes = require('./routes');
 
-module.exports = [Request];
+module.exports = [Request, Routes];
