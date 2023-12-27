@@ -48,11 +48,12 @@ Router.get('/files/download', async (req, res, next) => {
   }
 });
 
-Router.post('/events/hooks', async (req, res, next) => {
+Router.post('/events/hook', async (req, res, next) => {
   try {
     console.log(req.headers)
     console.log(req.body)
-    console.log("EVENT") 
+    console.log("EVENT")
+    res.status(200)
 
   } catch (error) {
     next(error);
