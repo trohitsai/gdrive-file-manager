@@ -50,8 +50,22 @@ async function incrementKey(key) {
   });
 }
 
+async function publish(event) {
+  return new Promise((resolve, reject) => {
+    client.publish(config.redisChannel, JSON.stringify(event), (err, reply) => {
+      if (err) {
+        logger.error(err)
+        reject(reply);
+      }
+      logger.info(`published message to ${config.redisChannel}`)
+      resolve(reply);
+    });
+  });
+}
+
 module.exports = {
   getKey,
   setKeyWithExpiry,
-  incrementKey
+  incrementKey,
+  publish
 };
