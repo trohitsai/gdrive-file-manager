@@ -54,14 +54,14 @@ Router.post('/events/hook', async (req, res, next) => {
     console.log(req.body)
     
     // header x-goog-resource-state tells us what type of change has occured in drive
-    // for some reason its always 'change' nomatter i delete, add or share file with new users
+    // for some reason its always 'change' even if delete, add or share file with new users
     if(req.headers['x-goog-resource-state']=='change') {
-      mischandler.handleNotifications({
-        id: '123456',
-        resource_id: req.headers['x-goog-resource-id'],
-        change_type: 'drive_file',
-        file_id: 'documentId1'
-      })
+      mischandler.handleNotifications(
+        {
+          type: req.headers['x-goog-resource-state'],
+          resource_id: req.headers['x-goog-resource-id']
+        }
+      )
     }
     res.status(200).json({});
   } catch (error) {
