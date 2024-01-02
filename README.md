@@ -82,8 +82,10 @@ The microservice will be accessible at http://localhost:3000 by default.
 - First use GET:/auth/url enpoint to get authentication url for oauth screen. Make sure you use Authorization as your PRIVATE_AUTH_TOKEN.
 - Open this url in a browser tab where the google account (which is added as a test user in GCP setup) is already logged in.
 - Accept the consent for the app and get the OAuth code from the browser url (code=XXXX).
+  <img width="1726" alt="Screenshot 2024-01-02 at 10 23 20 AM" src="https://github.com/trohitsai/gdrive-file-manager/assets/23382685/f1bbf313-07db-4807-a1d8-c30c74ee0ddf">
+  
 - Now use GET auth/callback endpoint to get access token for the test user. Make sure you use Authorization as your PRIVATE_AUTH_TOKEN. Add code as query param in this api and pass the value fetched from previous step.
-- In response you will the google test users oauth access token.
+- In response you will the google test user's oauth access token.
 
 8. Setting up ngrok
 
@@ -123,6 +125,7 @@ Once this done we need to add the user access token in index.html file under soc
 ```javascript
 var token = 'Bearer XXXXXX'
 ```
-
 Now open the index.html file in any browser. It should display the user google drive file details in the UI.
-Upon updating any file metadata like name, permissions the UI will automtically Poll and refresh to show updated data.
+<img width="1137" alt="Screenshot 2024-01-02 at 10 26 52 AM" src="https://github.com/trohitsai/gdrive-file-manager/assets/23382685/bfaae828-1d14-4dbb-9134-dfc17668d0aa">
+
+Upon updating any file metadata like name, permissions in connected google drive the UI will automtically poll and refresh to show updated data.
