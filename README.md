@@ -128,4 +128,4 @@ var token = 'Bearer XXXXXX'
 Now open the index.html file in any browser. It should display the user google drive file details in the UI.
 <img width="1137" alt="Screenshot 2024-01-02 at 10 26 52 AM" src="https://github.com/trohitsai/gdrive-file-manager/assets/23382685/bfaae828-1d14-4dbb-9134-dfc17668d0aa">
 
-Upon updating any file metadata like name, permissions the UI will automtically Poll and refresh to show updated data.
+Upon updating any file metadata like name, permissions in connected google drive the UI will automtically poll and refresh to show updated data.
