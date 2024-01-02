@@ -118,12 +118,22 @@ async function downloadFile(accessToken, fileId) {
                 });
                 
             } catch (err) {
-                reject({
-                    errors:{
-                        error_code: err.errors[0] ? `${err.errors[0].locationType}_${err.errors[0].reason}` : '',
-                        message: err.errors[0] ? `${err.errors[0].message}` : ''
-                    }
-                });
+                if(err.errors) {
+                    reject({
+                        errors:{
+                            error_code: err.errors[0] ? `${err.errors[0].locationType}_${err.errors[0].reason}` : '',
+                            message: err.errors[0] ? `${err.errors[0].message}` : ''
+                        }
+                    });
+                } else if(err.message) {
+                    err = JSON.parse(err.message).error
+                    reject({
+                        errors:{
+                            error_code: err.errors[0] ? `${err.errors[0].locationType}_${err.errors[0].reason}` : '',
+                            message: err.errors[0] ? `${err.errors[0].message}` : ''
+                        }
+                    });
+                }
             }
         });
       } catch (err) {
